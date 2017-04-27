@@ -6,7 +6,7 @@ var data={
 			x:200,
 			y:200,
 			src:'img/1.jpg',
-			txt:'1231213212313'
+			txt:'1、我是一个Demo'
 		},{
 			key:'B',
 			x:400,
@@ -15,7 +15,7 @@ var data={
 			txt:'123123123'
 		},{
 			key:'C',
-			x:600,
+			x:500,
 			y:200,
 			src:'img/3.jpg',
 			txt:'123123123'
@@ -133,16 +133,10 @@ function createLine(data,dom,sel){
 		var obj={};
 		obj.come=lineSubscript(come);
 		obj.to=lineSubscript(to);
-		
-		
-		
-		
-		
 		cav.beginPath();
        	cav.moveTo(obj.come.x,obj.come.y);
        	cav.lineTo(obj.to.x,obj.to.y);
 		cav.stroke();
-		
 	}
 }
 //line坐标校正
@@ -210,7 +204,7 @@ function myTopoDrag(event,obj){
 			e_y_l=p_w-obj_w-38;
 			if(!e_r_c)e_r_c=e_n_x;
 			else if(e_n_x<e_r_c){
-				e_y_l=e_y_l-1
+				e_y_l=e_y_l-2
 				e_r_c=0;
 			}
 		}
