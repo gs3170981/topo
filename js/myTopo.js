@@ -10,13 +10,18 @@ function myTopoCreate(rel){
 			p_h:500,
 			p_k:'',
 			c_w:80,
-			c_k:'box-shadow:0 0 3rem #b7c0c1;border-radius:10px;',
+			c_k:'box-shadow:0 0 10px #b7c0c1;border-radius:10px;',
 			img_w:50,
 			img_h:50,
-			fa_s:12
+			fa_s:20,//fa-size
+			t_s:13,//smail-size
+			l_s:15,//line-number-size
+			l_c:'rgba(83,6,155,0.5)',
+			l_c_old:'rgba(83,6,155,0.15)',
+			append:'body'
 		},
 		InterFace:{
-			img_is:'img',//fa
+			img_is:'img',//fa or img
 			c_d_x:'x',
 			c_d_y:'y',
 			c_d_key:'key',
@@ -55,15 +60,15 @@ function myTopoCreate(rel){
 	function myTopoStart(data){
 		ready(data.klass);
 		createDiv(data);
-		createLine(data.data.l_d,data.data.c_d,null,data.InterFace);
-		createNumber(data.data.l_d,data.InterFace);
+		createLine(data.data.l_d,data.data.c_d,null,data.InterFace,data.klass);
+		createNumber(data.data.l_d,data.InterFace,data.klass);
 		//部署阶段-DOM父级创建
 		function ready(klass){
-			var str="<article style='width:"+klass.p_w+"px;height:"+klass.p_h+"px;position:relative;margin:0 auto;"+klass.p_k+";border:1px solid red;' >"
+			var str="<article style='width:"+klass.p_w+"px;height:"+klass.p_h+"px;position:relative;margin:0 auto;"+klass.p_k+";' >"//border:1px solid red;
 				+"<hgroup uid='myTopo-number' style='position:absolute;width:100%;height:100%;z-index:1'></hgroup>"
 				+"<canvas uid='myTopo-canvas' height='"+klass.p_h+"' width='"+klass.p_w+"' style='position:absolute;'></canvas>"
 			+"</article>"
-			$('body').append(str);//后期修改位置
+			$(klass.append).append(str);//后期修改位置
 		}
 		//模块创建
 		function createDiv(data){
@@ -73,10 +78,10 @@ function myTopoCreate(rel){
 			var Event=data.Event;
 			for(var i=0;i<info.length;i++){
 				var img_fa="<img draggable='false' src="+info[i][inter.c_d_i]+" style='height:"+klass.img_h+"px;width:"+klass.img_w+"px;' />"
-				if(inter.img_is=='fa')img_fa="<i class='fa "+info[i][inter.c_d_i]+"' style='width: 100%;"+klass.fa_s+"'></i>"
+				if(inter.img_is=='fa')img_fa="<i class='fa "+info[i][inter.c_d_i]+"' style='width: 100%;font-size:"+klass.fa_s+"px'></i>"
 				var str="<div uid="+info[i][inter.c_d_key]+" style='padding:10px 20px;width:"+klass.c_w+"px;text-align:center;position:absolute;cursor:pointer;"+klass.c_k+"background:white;top:"+info[i][inter.c_d_y]+"px;left:"+info[i][inter.c_d_x]+"px;' >"
 					+img_fa
-					+"<small style='word-break:break-all;float:left;overflow:auto;-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;'>"+info[i][inter.c_d_val]+"</small>"
+					+"<small style='word-break:break-all;float:left;overflow:auto;-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;width:100%;font-size:"+klass.t_s+"px;'>"+info[i][inter.c_d_val]+"</small>"
 				+"</div>";
 				$('hgroup[uid="myTopo-number"]').append(str);
 				$("div[uid='"+info[i][inter.c_d_key]+"']").on('mousedown',function(){
@@ -88,11 +93,11 @@ function myTopoCreate(rel){
 			}
 		}
 		//number创建
-		function createNumber(data,opt){
+		function createNumber(data,opt,klass){
 			for(var i=0;i<data.length;i++){
 				var objMid=mid(lineSubscript(data[i][opt.l_d_start]),lineSubscript(data[i][opt.l_d_end]));
 				if(!data[i][opt.l_d_val])data[i][opt.l_d_val]='';//缺省则输出空
-				var str="<small uid="+(data[i][opt.l_d_start]+data[i][opt.l_d_end])+" style='position:absolute;top:"+objMid.y+"px;left:"+objMid.x+"px;'>"+data[i][opt.l_d_val]+"</small>"
+				var str="<small uid="+(data[i][opt.l_d_start]+data[i][opt.l_d_end])+" style='position:absolute;top:"+objMid.y+"px;left:"+objMid.x+"px;font-size:"+klass.l_s+"px;'>"+data[i][opt.l_d_val]+"</small>"
 				$('hgroup[uid="myTopo-number"]').append(str);
 				//输出后校正，否则获取不到宽高
 				numberSubscript(data[i],opt);
@@ -117,18 +122,18 @@ function myTopoCreate(rel){
 		return data;
 	}
 	//canvas-line创建
-	function createLine(data,dom,sel,opt){
+	function createLine(data,dom,sel,opt,klass){
 		var obj=$("canvas[uid='myTopo-canvas']")[0];
 		var cav=obj.getContext("2d");
 		var cache=0;
 	    cav.lineWidth=1;
-	    cav.strokeStyle='rgba(83,6,155,0.2)';
+	    cav.strokeStyle=klass.l_c_old;
 	    cav.clearRect(0,0,obj.width,obj.height);//清除重绘
 		for(var i=0;i<data.length;i++){
 			if(sel)if(cache<sel.length&&i==sel[cache]){
-		    	cav.strokeStyle='rgba(83,6,155,1)';
+		    	cav.strokeStyle=klass.l_c;
 		    	cache++;
-		   	}else cav.strokeStyle='rgba(83,6,155,0.2)';
+		   	}else cav.strokeStyle=klass.l_c_old;
 			createLineChild(data[i][opt.l_d_start],data[i][opt.l_d_end])
 		}
 		//子线的创建
@@ -222,7 +227,7 @@ function myTopoCreate(rel){
 			//牵动有关系的中央数值
 			var sel=getAllNumber($(obj).attr('uid'),nodeLinkInfo,opt);
 			//牵动所有线
-			createLine(nodeLinkInfo,nodeInfo,sel,opt);
+			createLine(nodeLinkInfo,nodeInfo,sel,opt,data.klass);
 	    	$(obj).css({top:e_x_t,left:e_y_l});
 		})
 	 	$(this).mouseup(function (event){
