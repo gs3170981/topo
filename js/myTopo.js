@@ -16,6 +16,7 @@ function myTopoCreate(rel){
 			fa_s:20,//fa-size
 			t_s:13,//smail-size
 			l_s:15,//line-number-size
+			l_w:50,//line-number-width
 			l_c:'rgba(83,6,155,0.5)',
 			l_c_old:'rgba(83,6,155,0.15)',
 			append:'body'
@@ -60,8 +61,8 @@ function myTopoCreate(rel){
 	function myTopoStart(data){
 		ready(data.klass);
 		createDiv(data);
-		createLine(data.data.l_d,data.data.c_d,null,data.InterFace,data.klass);
 		createNumber(data.data.l_d,data.InterFace,data.klass);
+		createLine(data.data.l_d,data.data.c_d,null,data.InterFace,data.klass);
 		//部署阶段-DOM父级创建
 		function ready(klass){
 			var str="<article style='width:"+klass.p_w+"px;height:"+klass.p_h+"px;position:relative;margin:0 auto;"+klass.p_k+";' >"//border:1px solid red;
@@ -79,9 +80,9 @@ function myTopoCreate(rel){
 			for(var i=0;i<info.length;i++){
 				var img_fa="<img draggable='false' src="+info[i][inter.c_d_i]+" style='height:"+klass.img_h+"px;width:"+klass.img_w+"px;' />"
 				if(inter.img_is=='fa')img_fa="<i class='fa "+info[i][inter.c_d_i]+"' style='width: 100%;font-size:"+klass.fa_s+"px'></i>"
-				var str="<div uid="+info[i][inter.c_d_key]+" style='padding:10px 20px;width:"+klass.c_w+"px;text-align:center;position:absolute;cursor:pointer;"+klass.c_k+"background:white;top:"+info[i][inter.c_d_y]+"px;left:"+info[i][inter.c_d_x]+"px;' >"
+				var str="<div uid="+info[i][inter.c_d_key]+" style='padding:10px 20px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;width:"+klass.c_w+"px;text-align:center;position:absolute;cursor:pointer;"+klass.c_k+"background:white;top:"+info[i][inter.c_d_y]+"px;left:"+info[i][inter.c_d_x]+"px;' >"
 					+img_fa
-					+"<small style='word-break:break-all;float:left;overflow:auto;-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;width:100%;font-size:"+klass.t_s+"px;'>"+info[i][inter.c_d_val]+"</small>"
+					+"<small style='word-break:break-all;float:left;width:100%;font-size:"+klass.t_s+"px;'>"+info[i][inter.c_d_val]+"</small>"
 				+"</div>";
 				$('hgroup[uid="myTopo-number"]').append(str);
 				$("div[uid='"+info[i][inter.c_d_key]+"']").on('mousedown',function(){
@@ -97,14 +98,14 @@ function myTopoCreate(rel){
 			for(var i=0;i<data.length;i++){
 				var objMid=mid(lineSubscript(data[i][opt.l_d_start]),lineSubscript(data[i][opt.l_d_end]));
 				if(!data[i][opt.l_d_val])data[i][opt.l_d_val]='';//缺省则输出空
-				var str="<small uid="+(data[i][opt.l_d_start]+data[i][opt.l_d_end])+" style='position:absolute;top:"+objMid.y+"px;left:"+objMid.x+"px;font-size:"+klass.l_s+"px;'>"+data[i][opt.l_d_val]+"</small>"
+				var str="<div uid="+(data[i][opt.l_d_start]+data[i][opt.l_d_end])+" style='position:absolute;border:1px solid red;max-width:"+klass.l_w+"px;word-wrap:break-word;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;top:"+objMid.y+"px;left:"+objMid.x+"px;font-size:"+klass.l_s+"px;'>"+data[i][opt.l_d_val]+"</div>"
 				$('hgroup[uid="myTopo-number"]').append(str);
 				//输出后校正，否则获取不到宽高
 				numberSubscript(data[i],opt);
 			}
 			//number坐标校正
 			function numberSubscript(str,opt){
-				var obj=$("small[uid='"+(str[opt.l_d_start]+str[opt.l_d_end])+"']");
+				var obj=$("div[uid='"+(str[opt.l_d_start]+str[opt.l_d_end])+"']");
 				var obj_w=$(obj).width();
 				var obj_h=$(obj).height();
 				var obj_t=$(obj).position().top;
@@ -141,10 +142,86 @@ function myTopoCreate(rel){
 			var obj={};
 			obj.come=lineSubscript(come);
 			obj.to=lineSubscript(to);
-			cav.beginPath();
-	       	cav.moveTo(obj.come.x,obj.come.y);
-	       	cav.lineTo(obj.to.x,obj.to.y);
-			cav.stroke();
+			var obj_cache={
+				frist:{
+					come:{
+						x:0,
+						y:0,
+					},to:{
+						x:0,
+						y:0,
+					}
+				},last:{
+					come:{
+						x:0,
+						y:0,
+					},to:{
+						x:0,
+						y:0,
+					}
+				}
+			}
+			var mid_x=(obj.come.x+obj.to.x)/2;
+			var mid_y=(obj.come.y+obj.to.y)/2;
+			var numberObj=$('div[uid="'+(come+to)+'"]');
+			var numberW=numberObj.width()/2;
+			var numberH=numberObj.height();
+			var mid_z=Math.sqrt((numberH*numberH)*2)/2;
+//			console.log(mid_z)
+
+//			console.log(obj.come,obj.to,)
+			createLineNumberArrow(lineNumberMid(obj,1));
+			createLineNumberArrow(lineNumberMid(obj,0));
+			function segmentsIntr(a, b, c, d){
+			    // 三角形abc 面积的2倍
+			    var area_abc = (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x);
+			    // 三角形abd 面积的2倍
+			    var area_abd = (a.x - d.x) * (b.y - d.y) - (a.y - d.y) * (b.x - d.x); 
+			    // 面积符号相同则两点在线段同侧,不相交 (对点在线段上的情况,本例当作不相交处理);
+			    if ( area_abc*area_abd>=0 ) {
+			        return false;
+			    }
+			    // 三角形cda 面积的2倍
+			    var area_cda = (c.x - a.x) * (d.y - a.y) - (c.y - a.y) * (d.x - a.x);
+			    // 三角形cdb 面积的2倍
+			    var area_cdb = area_cda + area_abc - area_abd ;
+			    if (  area_cda * area_cdb >= 0 ) {
+			        return false;
+			    }
+			    //计算交点坐标
+			    var t = area_cda / ( area_abd- area_abc );
+			    var dx= t*(b.x - a.x),
+			        dy= t*(b.y - a.y);
+			    return { x: a.x + dx , y: a.y + dy };
+			}
+
+			
+			//截取线中数字的前后点
+			function lineNumberMid(obj,index){
+				if(index){
+					obj_cache.frist.come.x=obj.come.x;
+					obj_cache.frist.come.y=obj.come.y;
+					obj_cache.frist.to.x=mid_x-mid_z;
+					obj_cache.frist.to.y=mid_y-mid_z;
+					return obj_cache.frist;
+				}else {
+					obj_cache.last.come.x=mid_x+mid_z;
+					obj_cache.last.come.y=mid_y+mid_z;
+					obj_cache.last.to.x=obj.to.x;
+					obj_cache.last.to.y=obj.to.y;
+					return obj_cache.last;
+				}
+			}
+
+			
+			//创建线
+			function createLineNumberArrow(obj){
+				cav.beginPath();
+		       	cav.moveTo(obj.come.x,obj.come.y);
+		       	cav.lineTo(obj.to.x,obj.to.y);
+				cav.stroke();
+			}
+			
 		}
 	}
 	//坐标校正
@@ -246,7 +323,7 @@ function myTopoCreate(rel){
 			for(var i=0;i<data.length;i++){
 				if(data[i][opt.l_d_start]==obj || data[i][opt.l_d_end]==obj){
 					var objMid=mid(lineSubscript(data[i][opt.l_d_start]),lineSubscript(data[i][opt.l_d_end]));
-					var obj_c=$("small[uid='"+(data[i][opt.l_d_start]+data[i][opt.l_d_end])+"']");
+					var obj_c=$("div[uid='"+(data[i][opt.l_d_start]+data[i][opt.l_d_end])+"']");
 					var obj_w=$(obj_c).width();
 					var obj_h=$(obj_c).height();
 					$(obj_c).css({

@@ -30,7 +30,7 @@
 		{
 			"fromKey":"A",
 			"toKey":"B",
-			"totalCount":10000
+			"totalCount":10000000000
 		},{
 			"fromKey":"B",
 			"toKey":"C",
@@ -54,66 +54,3 @@
 		}
 	]
 }}
-
-//{
-//	"data": {
-//	    "nodeLinkInfo": [
-//	        {
-//	            "toKey": "test2^TOMCAT",
-//	            "fromKey": "test2^USER",
-//	            "totalCount": 9,
-//	            "errorCount": 0
-//	        },
-//	        {
-//	            "toKey": "test1^TOMCAT",
-//	            "fromKey": "test2^TOMCAT",
-//	            "totalCount": 18,
-//	            "errorCount": 0
-//	        },
-//	        {
-//	            "toKey": "test2^TOMCAT",
-//	            "fromKey": "test1^TOMCAT",
-//	            "totalCount": 18,
-//	            "errorCount": 0
-//	        }
-//	    ],
-//	    "nodeInfo": [
-//	        {
-//	            "serviceType": "fa-user",
-//	            "qPS": 0,
-//	            "locationId": null,
-//	            "name": "USER",
-//	            "x": null,
-//	            "y": null,
-//	            "errorRate": 0,
-//	            "key": "test2^USER",
-//	            "concurrency": 0
-//	        },
-//	        {
-//	            "serviceType": "fa-user",
-//	            "qPS": 0,
-//	            "locationId": null,
-//	            "name": "test2",
-//	            "x": null,
-//	            "y": null,
-//	            "errorRate": 0,
-//	            "key": "test2^TOMCAT",
-//	            "concurrency": 0
-//	        },
-//	        {
-//	            "serviceType": "fa-user",
-//	            "qPS": 0,
-//	            "locationId": null,
-//	            "name": "test1",
-//	            "x": null,
-//	            "y": null,
-//	            "errorRate": 0,
-//	            "key": "test1^TOMCAT",
-//	            "concurrency": 0
-//	        }
-//	    ]
-//	},
-//	"errorMessage": "",
-//	"id": null,
-//	"isSuccess": true
-//}
