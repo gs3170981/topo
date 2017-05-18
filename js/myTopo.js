@@ -11,10 +11,11 @@ function myTopoCreate(rel){
 			p_k:'',
 			c_w:80,
 			c_k:'box-shadow:0 0 10px #b7c0c1;border-radius:10px;',
+			c_list_s:10,
 			img_w:50,
 			img_h:50,
 			fa_s:20,//fa-size
-			t_s:13,//smail-size
+			t_s:14,//smail-size
 			l_s:15,//line-number-size
 			l_c:'rgba(83,6,155,0.5)',
 			l_c_old:'rgba(83,6,155,0.15)',
@@ -26,6 +27,8 @@ function myTopoCreate(rel){
 			c_d_y:'y',
 			c_d_key:'key',
 			c_d_i:'src',
+			c_id:'locationId',
+			c_list:[],
 			c_d_val:'txt',
 			l_d_start:'fromKey',
 			l_d_end:'toKey',
@@ -82,11 +85,17 @@ function myTopoCreate(rel){
 			var info=data.data.c_d;
 			var Event=data.Event;
 			for(var i=0;i<info.length;i++){
-				var img_fa="<img draggable='false' src='/images/icons/"+info[i][inter.c_d_i]+".png' style='height:"+klass.img_h+"px;width:"+klass.img_w+"px;' />"
+				var img_fa="<img draggable='false' src='./images/icons/"+info[i][inter.c_d_i]+".png' style='height:"+klass.img_h+"px;width:"+klass.img_w+"px;' />"
 				if(inter.img_is=='fa')img_fa="<i class='fa "+info[i][inter.c_d_i]+"' style='width: 100%;font-size:"+klass.fa_s+"px'></i>"
-				var str="<div uid="+info[i][inter.c_d_key]+" style='padding:10px 20px;max-width:"+klass.c_w+"px;text-align:center;position:absolute;cursor:pointer;"+klass.c_k+"background:white;top:"+info[i][inter.c_d_y]+"px;left:"+info[i][inter.c_d_x]+"px;' >"
+				var list=inter.c_list;
+				var listSum='';
+				if(list.length)
+					for(var j=0;j<list.length;j++)
+						listSum+="<p style='word-break:break-all;width:100%;text-align:left;font-size:"+klass.c_list_s+"px;'>"+list[j].title+":<span style='float:right'>"+info[i][list[j].value]+"</span></p>"
+				var str="<div locatId="+info[i][inter.c_id]+" uid="+info[i][inter.c_d_key]+" style='padding:10px 20px;-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;min-width:"+klass.c_w+"px;text-align:center;position:absolute;cursor:pointer;"+klass.c_k+";top:"+info[i][inter.c_d_y]+"px;left:"+info[i][inter.c_d_x]+"px;' >"
 					+img_fa
-					+"<small style='word-break:break-all;float:left;overflow:auto;-webkit-user-select: none;-moz-user-select: none;-ms-user-select: none;width:100%;font-size:"+klass.t_s+"px;'>"+info[i][inter.c_d_val]+"</small>"
+					+"<p style='word-break:break-all;width:100%;font-size:"+klass.t_s+"px;'>"+info[i][inter.c_d_val]+"</p>"
+					+listSum
 				+"</div>";
 				$('hgroup[uid="myTopo-number"]').append(str);
 				var obj=$("div[uid='"+info[i][inter.c_d_key]+"']");
@@ -102,6 +111,10 @@ function myTopoCreate(rel){
 		function createNumber(data,opt,klass){
 			for(var i=0;i<data.length;i++){
 				var objMid=mid(lineSubscript(data[i][opt.l_d_start]),lineSubscript(data[i][opt.l_d_end]));
+				if(!objMid){
+					layer.msg('线与节点不匹配！');
+					return false;
+				}
 				if(!data[i][opt.l_d_val])data[i][opt.l_d_val]='';//缺省则输出空
 				var str="<small uid="+(data[i][opt.l_d_start]+data[i][opt.l_d_end])+" style='position:absolute;top:"+objMid.y+"px;left:"+objMid.x+"px;font-size:"+klass.l_s+"px;'>"+data[i][opt.l_d_val]+"</small>"
 				$('hgroup[uid="myTopo-number"]').append(str);
@@ -122,6 +135,7 @@ function myTopoCreate(rel){
 	}
 	//取直线中点
 	function mid(fromKey,toKey){
+		if(!fromKey || !toKey)return false;
 		var data={};
 		data.x=(fromKey.x+toKey.x)/2;
 		data.y=(fromKey.y+toKey.y)/2;
@@ -140,17 +154,97 @@ function myTopoCreate(rel){
 		    	cav.strokeStyle=klass.l_c;
 		    	cache++;
 		   	}else cav.strokeStyle=klass.l_c_old;
-			createLineChild(data[i][opt.l_d_start],data[i][opt.l_d_end])
+			createLineChild(data[i][opt.l_d_start],data[i][opt.l_d_end],klass.l_c_old);
 		}
 		//子线的创建
-		function createLineChild(come,to){
+		function createLineChild(come,to,color){
 			var obj={};
 			obj.come=lineSubscript(come);
 			obj.to=lineSubscript(to);
+			if(!obj.come || !obj.to)return false;//如果对应线则返回
 			cav.beginPath();
 	       	cav.moveTo(obj.come.x,obj.come.y);
-	       	cav.lineTo(obj.to.x,obj.to.y);
+	       	
+	       	//come会触发两遍--目前暂时没问题
+	       	var succTo=segReturn(obj.come,obj.to,rectFour(to,obj.to));
+
+	       	cav.lineTo(succTo.x,succTo.y);
 			cav.stroke();
+			
+			var angle=getAngle(obj.come.x,obj.come.y,succTo.x,succTo.y);
+			console.log(angle,come,to);
+//			draw(,color,'fill');
+			//绘画三角
+			var draw = function(one,two,three,color,type){
+			    cav.beginPath();
+			    cav.moveTo(one.x,one.y);
+			    cav.lineTo(two.x,two.y);
+			    cav.lineTo(three.x,three.y);
+			    cav[type + 'Style'] = color;
+			    cav.closePath();
+			    cav[type]();
+			}
+			//计算角度
+			function getAngle(px1, py1, px2, py2) {
+		        x=px2-px1;
+		        y=py2-py1;
+		        hypotenuse = Math.sqrt(Math.pow(x, 2)+Math.pow(y, 2));
+		        cos=x/hypotenuse;
+		        radian=Math.acos(cos);
+		        angle=180/(Math.PI/radian);
+		        if(y<0)
+	            	angle=-angle;
+	            else if((y==0) && (x<0))
+	            	angle=180;
+		        return angle;
+			}
+			
+			
+			//获取四点
+			function rectFour(obj,to){
+				var obj=$("div[uid='"+obj+"']");
+				var o_w=($(obj).width()+40)/2;
+				var o_h=($(obj).height()+20)/2;
+				var four={
+					t_l:{
+						x:to.x-o_w,
+						y:to.y+o_h
+					},t_r:{
+						x:to.x+o_w,
+						y:to.y+o_h
+					},b_l:{
+						x:to.x-o_w,
+						y:to.y-o_h
+					},b_r:{
+						x:to.x+o_w,
+						y:to.y-o_h
+					}
+				}
+				return four;
+			}
+			//两条线段计算交点
+			function segmentsIntr(a,b,c,d){
+				var area_abc=(a.x-c.x)*(b.y-c.y)-(a.y-c.y)*(b.x-c.x);
+				var area_abd=(a.x-d.x)*(b.y-d.y)-(a.y-d.y)*(b.x-d.x);
+				if(area_abc*area_abd>=0)return false;
+				var area_cda=(c.x-a.x)*(d.y-a.y)-(c.y-a.y)*(d.x-a.x);
+				var area_cdb=area_cda+area_abc-area_abd;
+				if(area_cda*area_cdb>=0)return false;
+				var t=area_cda/(area_abd-area_abc);
+				var dx=t*(b.x-a.x),dy=t*(b.y-a.y);
+				return{x:a.x+dx,y:a.y+dy};
+			}
+			//获取正确的相交点
+			function segReturn(come,to,four){
+				var top=segmentsIntr(come,to,four.t_l,four.t_r);
+				if(top)return top;
+				var right=segmentsIntr(come,to,four.t_r,four.b_r);
+				if(right)return right;
+				var bottom=segmentsIntr(come,to,four.b_r,four.b_l);
+				if(bottom)return bottom;
+				var left=segmentsIntr(come,to,four.t_l,four.b_l);
+				if(left)return left;
+			}
 		}
 	}
 	//坐标校正
@@ -161,8 +255,8 @@ function myTopoCreate(rel){
 		for(var i=0;i<dom.length;i++){
 			if(dom[i][opt.c_d_key]==obj){
 				var id=$('div[uid="'+dom[i][opt.c_d_key]+'"]');
-				z.x=dom[i].x+$(id).width()/2+10;
-				z.y=dom[i].y+$(id).height()/2+5;
+				z.x=dom[i].x+$(id).width()/2+20;
+				z.y=dom[i].y+$(id).height()/2+10;
 				return z;
 			}
 		}
@@ -251,7 +345,8 @@ function myTopoCreate(rel){
 			var x=$(obj).position().left;
 			var y=$(obj).position().top;
 			var name=$(obj).attr('uid');
-			data.Event.up(x,y,name);
+			var locatId=$(obj).attr('locatId');
+			data.Event.up(x,y,name,locatId);
 		}
 		function subscript(obj,all,opt){
 			var id=$(obj).attr('uid');

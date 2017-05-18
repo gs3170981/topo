@@ -11,41 +11,76 @@
 	<script>
 		$.ajax({
 			type:"get",
-			url:"myjson.json",
+			url:"getDetilTopoInfo.json",
 			async:true,
-			success:function(res){
-				myTopoCreate({
-					klass:{
-						p_w:800,
-						p_h:500,
-					},
-					InterFace:{
-						img_is:'img',//fa
-						c_d_x:'x',
-						c_d_y:'y',
-						c_d_key:'key',
-						c_d_i:'src',
-						c_d_val:'txt',
-						l_d_start:'fromKey',
-						l_d_end:'toKey',
-						l_d_val:'totalCount'
-					},
-					data:{
-						c_d:res.data.nodeInfo,
-						l_d:res.data.nodeLinkInfo
-					},
-					Event:{
-						on:'dblclick',//用jq
-						e:function(){
-							console.log('do something...')
-						}
-					}
-				})
+			success:function(data){
+				myTopoCreate(topoOption(data.data));
 			}
 		});
+		function topoOption(data){
+			//topo图配置项（更多参数打开js源文件）
+			var topo={//样式绑定
+				klass:{
+					p_w:1500,
+					p_h:1000,
+					img_w:30,
+					img_h:30,
+					c_w:150,
+//					append:$('.ibox-content')
+				},//接口绑定
+				InterFace:{
+					img_is:'img',//fa or img
+					c_d_x:'x',
+					c_d_y:'y',
+					c_d_key:'key',
+					c_d_i:'serviceType',
+					c_d_val:'name',
+					c_id:'locationId',
+					c_list:[
+						{
+							title:'QPS',
+							value:'qPS'
+						},{
+							title:'并发数',
+							value:'concurrency'
+						},{
+							title:'错误率',
+							value:'errorRate'
+						}
+					],
+					l_d_start:'fromKey',
+					l_d_end:'toKey',
+					l_d_val:'totalCount'
+				},//数据绑定
+				data:{
+					c_d:data.nodeInfo,
+					l_d:data.nodeLinkInfo
+				},//事件绑定
+				Event:{
+					on:'dblclick',//用jq
+					e:function(data,obj){
+						$('#sysMonitServeGetGrid').remove();
+						$('#sysMonitApiSangji').remove();
+						sysMonitSerRequestGeteachs(self,$(obj).children('p').eq(0).text())
+					},
+					up:function(x,y,name,locatId){
+//						$.ajax({
+//							type:"post",
+//							url:"nodeLocation/save.htm",
+//							async:true,
+//							data:{
+//								nodeKey:name,
+//								x:x,
+//								y:y,
+//								locationId:locatId
+//							}
+//						});
+					}
+				}
+			}
+			return topo;
+		}
 		
-		//保存--停止移动的时候回调一次data坐标值
-		//不选为默认项
 		
 	</script>
 </html>

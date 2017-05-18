@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+	</head>
+	<body>
+		<canvas id="cav" style="border: 1px solid red;" width="1200px" height="1200px"></canvas>
+	</body>
+	<script>
+		function getAngle(px1, py1, px2, py2) {
+	        x = px2-px1;
+	        y = py2-py1;
+	        hypotenuse = Math.sqrt(Math.pow(x, 2)+Math.pow(y, 2));
+	        cos = x/hypotenuse;
+	        radian = Math.acos(cos);
+	        angle = 180/(Math.PI/radian);
+	        if (y<0)
+                angle = -angle;
+            else if ((y == 0) && (x<0))
+                angle = 180;
+	        return angle;
+		}
+		console.log(getAngle(0,0,0,5));
+		
+		Rotate = function(Source,Angle){
+		    var A,R;
+		    A = Math.atan2(Source.Y,Source.X)
+		    A += -Math.PI/180*Angle
+		    R = Math.sqrt(Source.X * Source.X + Source.Y * Source.Y)//半径
+		    return {
+		        X : Math.cos(A) * R,
+		        Y : Math.sin(A) * R
+		    }
+		}
+		console.log(Rotate({X:0,Y:4},45));
+	</script>
+</html>
